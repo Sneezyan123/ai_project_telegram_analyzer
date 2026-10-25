@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Мідтерм: Telegram-пропаганда</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  :root {
+    --ink: #17202a;
+    --muted: #5d6875;
+    --line: #dfe3e8;
+    --bg: #ffffff;
+    --soft: #f4f6f8;
+    --accent: #1f5fa8;
+    --kr: #c0392b;   /* Кремль */
+    --op: #7b4fa0;   /* опозиція */
+    --ua: #d39b00;   /* Україна */
+    --by: #2e8b57;   /* Білорусь */
+    --good: #2e7d4f;
+    --warn: #b5651d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #888; }
+  body { font-family: "Inter", "DejaVu Sans", sans-serif; color: var(--ink); font-size: 17px; line-height: 1.38; }
+  .slide {
+    width: 1280px; height: 720px; background: var(--bg); position: relative; overflow: hidden;
+    padding: 44px 56px 56px; page-break-after: always; margin: 0 auto 20px;
+    display: flex; flex-direction: column;
+  }
+  @media print { html, body { background: #fff; } .slide { margin: 0; } }
+  h1 { font-size: 29px; line-height: 1.15; margin: 0 0 18px; font-weight: 700; letter-spacing: -0.01em; }
+  h1 .kicker { display: block; font-size: 14px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  h3 { font-size: 16px; margin: 0 0 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  p { margin: 0 0 8px; }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  b, strong { font-weight: 650; }
+  .muted { color: var(--muted); }
+  .small { font-size: 14.5px; }
+  .tiny { font-size: 13px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .row { display: flex; gap: 28px; flex: 1; min-height: 0; }
+  .col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .card { background: var(--soft); border-radius: 10px; padding: 14px 16px; }
+  .callout { border-left: 4px solid var(--accent); background: #eef4fb; padding: 10px 14px; border-radius: 0 8px 8px 0; }
+  .callout.warn { border-color: var(--warn); background: #fbf2ea; }
+  .callout.good { border-color: var(--good); background: #edf6f0; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); font-size: 15px; }
+  th { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  td.r, th.r { text-align: right; }
+  tr.hl td { background: #eef4fb; font-weight: 650; }
+  .footer {
+    position: absolute; left: 56px; right: 56px; bottom: 18px; display: flex; justify-content: space-between;
+    font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px;
+  }
+  .speaker { font-weight: 600; color: var(--accent); }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 650; padding: 2px 8px; border-radius: 99px; margin-right: 4px; }
+  .tag.ok { background: #e3f1e8; color: var(--good); }
+  .tag.part { background: #fbf0dc; color: #9a6400; }
+  .tag.no { background: #f7e1df; color: var(--kr); }
+  .tag.plus { background: #e6eefa; color: var(--accent); }
+
+  /* title */
+  .title-slide { padding: 64px 72px; background: linear-gradient(135deg, #f7f9fc 0%, #e9f0f9 100%); }
+  .title-slide h1 { font-size: 42px; max-width: 1000px; margin-bottom: 14px; }
+  .stats { display: flex; gap: 14px; margin: 26px 0 26px; }
+  .stat { background: #fff; border-radius: 10px; padding: 12px 18px; flex: 1; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .stat .v { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+  .stat .l { font-size: 13.5px; color: var(--muted); }
+  .q { display: flex; gap: 10px; margin-bottom: 7px; font-size: 17px; }
+  .q .n { flex: 0 0 34px; height: 26px; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .q.extra .n { background: var(--good); }
+
+  /* pipeline */
+  .pipe { display: flex; align-items: stretch; gap: 0; margin: 4px 0 14px; }
+  .step { flex: 1; background: var(--soft); border-radius: 8px; padding: 10px 11px; font-size: 13.5px; line-height: 1.32; position: relative; }
+  .step b { display: block; font-size: 14.5px; margin-bottom: 3px; color: var(--ink); }
+  .arrow { flex: 0 0 22px; display: flex; align-items: center; justify-content: center; color: #9aa4af; font-size: 18px; }
+  .step.model { background: #eef4fb; }
+  .step.eval { background: #edf6f0; }
+
+  .bar-label { font-size: 13px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+</style>
+</head>
+<body>
+
+<!-- 1. TITLE -->
+<section class="slide title-slide">
+  <h1><span class="kicker">Мідтерм · Штучний інтелект · ФПН УКУ</span>Тематичне моделювання Telegram&#8209;пропаганди: порівняння середовищ і динаміки тем</h1>
+  <p class="muted" style="font-size:18px">Онищук Артем · Полянський Іван · Лещук Роман &nbsp;|&nbsp; Ментори: Косован Олександр, Корець Христина</p>
+
+  <div class="stats">
+    <div class="stat"><div class="v num">423 101</div><div class="l">постів у вибірці</div></div>
+    <div class="stat"><div class="v num">1 256</div><div class="l">каналів</div></div>
+    <div class="stat"><div class="v">4</div><div class="l">групи: Кремль, опозиція, Україна, Білорусь</div></div>
+    <div class="stat"><div class="v num">235</div><div class="l">тем BERTopic</div></div>
+  </div>
+
+  <div class="row" style="flex:0">
+    <div class="col">
+      <h3>Питання, на які відповідаємо на мідтермі</h3>
+      <div class="q"><span class="n">Q1</span><span>Чим відрізняються теми прокремлівських і антикремлівських каналів?</span></div>
+      <div class="q"><span class="n">Q2</span><span>Що змінилося в наборі тем після 24.02.2022?</span></div>
+      <div class="q extra"><span class="n">Q3</span><span>Білорусь vs Росія — у пропоузалі вважали нерозв'язним, <b>зробили понад план</b></span></div>
+    </div>
+    <div class="col" style="flex:0 0 360px">
+      <h3>Мета</h3>
+      <p class="small">Не просто карта тем за ключовими словами, а порівняння середовищ і часу в <b>одному спільному просторі тем</b> — і надалі розкладання тем на твердження та стенс.</p>
+    </div>
+  </div>
+
+  <div class="footer"><span>github.com/Sneezyan123/ai_project_telegram_analyzer</span><span><span class="speaker">Артем</span> · 1 / 8</span></div>
+</section>
+
+<!-- 2. DATA + PIPELINE -->
+<section class="slide">
+  <h1><span class="kicker">Технічна частина</span>Дані та pipeline</h1>
+
+  <div class="pipe">
+    <div class="step"><b>1. Дані</b>~53 ГБ: Bawa (figshare) + Kyrychenko (Zenodo). Читаємо потоково, чанками</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2. Вибірка</b>без форвардів, ≥80 символів, без дублікатів, 24.02.21–24.02.23; порівну з кожної комірки канал × місяць</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3. Language ID</b>ru / uk / be / en; звірено з лічильником літер — 1 розбіжність на 40 тис.</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>4. Лематизація</b>pymorphy3 ru + uk; стоп-лист лише службових слів</div>
+    <div class="arrow">→</div>
+    <div class="step model"><b>5. Моделі</b>LDA (baseline) і BERTopic: me5-base → UMAP → HDBSCAN → c-TF-IDF</div>
+    <div class="arrow">→</div>
+    <div class="step eval"><b>6. Порівняння</b>JSD між групами + перестановочний тест по каналах</div>
+  </div>
+
+  <div class="row">
+    <div class="col" style="flex:1.05">
+      <h3>Чотири групи замість двох</h3>
+      <table>
+        <tr><th>Група</th><th>Джерело</th><th class="r">Каналів</th><th class="r">Постів</th></tr>
+        <tr><td><span class="dot" style="background:var(--kr)"></span>Кремль</td><td class="small">Bawa, прокремлівські</td><td class="r">403</td><td class="r">197 367</td></tr>
+        <tr><td><span class="dot" style="background:var(--op)"></span>Опозиція</td><td class="small">Bawa (без укр.) + Zenodo</td><td class="r">176</td><td class="r">77 268</td></tr>
+        <tr><td><span class="dot" style="background:var(--ua)"></span>Україна</td><td class="small">20 з Bawa + Zenodo</td><td class="r">639</td><td class="r">119 118</td></tr>
+        <tr><td><span class="dot" style="background:var(--by)"></span>Білорусь (провладні)</td><td class="small">Zenodo, ручний відбір</td><td class="r">38</td><td class="r">29 348</td></tr>
+      </table>
+      <p class="tiny muted" style="margin-top:8px">Порівнюємо частки тем усередині групи; значущість — по каналах, не по постах.</p>
+    </div>
+    <div class="col">
+      <h3>Чому додали другий датасет</h3>
+      <div class="callout warn small" style="margin-bottom:10px">
+        «Антикремлівські» канали у Bawa — це переважно <b>російська опозиція</b>: ~85 з 112. Українських лише 20, і половина з них у 2021–22 писала російською.
+      </div>
+      <ul class="small">
+        <li>Підключили Zenodo (3 074 канали, 8 кластерів) → 4 групи, і змогли відповісти на Q3.</li>
+        <li>Мітки обох датасетів правили вручну (напр. «Дождь» стояв серед прокремлівських; у «білоруському» кластері Zenodo половина — російські Z-канали). Кожна правка задокументована.</li>
+        <li>353 канали є в обох датасетах: «сторона» збігається в 95%.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer"><span>github.com/Sneezyan123/ai_project_telegram_analyzer</span><span><span class="speaker">Артем</span> · 2 / 8</span></div>
+</section>
+
+<!-- 3. BASELINE vs BERTOPIC + METRICS -->
+<section class="slide">
+  <h1><span class="kicker">Технічна частина</span>Baseline, модель і метрики</h1>
+
+  <div class="row">
+    <div class="col">
+      <h3>LDA (baseline)</h3>
+      <table>
+        <tr><th>K</th><th class="r">c_v</th><th class="r">NPMI</th><th class="r">diversity</th></tr>
+        <tr class="hl"><td>20</td><td class="r">0.577</td><td class="r">0.063</td><td class="r">0.74</td></tr>
+        <tr><td>40</td><td class="r">0.578</td><td class="r">0.057</td><td class="r">0.77</td></tr>
+        <tr><td>60</td><td class="r">0.571</td><td class="r">0.039</td><td class="r">0.78</td></tr>
+        <tr><td>80</td><td class="r">0.552</td><td class="r">−0.008</td><td class="r">0.82</td></tr>
+      </table>
+      <p class="small" style="margin-top:8px">Теми розмиті («россия, страна, война, народ…»), <b>97%</b> україномовних постів — в одній темі. ARI між seed: <b>0.41</b>.</p>
+
+      <h3 style="margin-top:12px">BERTopic</h3>
+      <table>
+        <tr><th>min_cluster</th><th class="r">тем</th><th class="r">c_v</th><th class="r">diversity</th><th class="r">шум</th></tr>
+        <tr><td>100</td><td class="r">424</td><td class="r">0.444</td><td class="r">0.85</td><td class="r">59%</td></tr>
+        <tr class="hl"><td>200</td><td class="r">235</td><td class="r">0.432</td><td class="r">0.91</td><td class="r">59%</td></tr>
+        <tr><td>400</td><td class="r">93</td><td class="r">0.413</td><td class="r">0.96</td><td class="r">45%</td></tr>
+      </table>
+      <p class="small" style="margin-top:8px">ARI між seed: <b>0.68</b> (0.93 без шуму) → теми стабільні, «хитається» межа тема/шум.</p>
+    </div>
+
+    <div class="col">
+      <h3>Чому NPMI не можна брати на слово</h3>
+      <p class="small">На референсі 30 тис. постів LDA «виграє» (0.063 vs −0.091). Але c-TF-IDF вибирає рідкісні специфічні слова — вони просто не встигають зустрітися разом.</p>
+      <table>
+        <tr><th>Модель</th><th>Референс</th><th class="r">пари без спів-вжитку</th><th class="r">NPMI</th></tr>
+        <tr><td>LDA K=20</td><td>30k</td><td class="r">4%</td><td class="r">0.171</td></tr>
+        <tr><td>LDA K=20</td><td>весь корпус</td><td class="r">3%</td><td class="r">0.179</td></tr>
+        <tr><td>BERTopic 200</td><td>30k</td><td class="r">51%</td><td class="r">−0.261</td></tr>
+        <tr class="hl"><td>BERTopic 200</td><td>весь корпус</td><td class="r">16%</td><td class="r">0.173</td></tr>
+      </table>
+      <p class="tiny muted" style="margin-top:4px">NPMI на рівні документів. Розрив — артефакт малого референсу (Hoyle et al., 2021).</p>
+
+      <div class="callout good small" style="margin-top:12px">
+        <b>Вибір: BERTopic, min_cluster_size = 200.</b> На повному корпусі NPMI як у LDA, вища diversity і стабільність, теми читаються; 235 тем ще можна переглянути вручну.
+      </div>
+      <p class="tiny muted" style="margin-top:10px"><b>Метрики:</b> c_v, NPMI, topic diversity, ARI між seed; між групами — JSD + перестановочний тест (1 000 перемішувань каналів).</p>
+    </div>
+  </div>
+
+  <div class="footer"><span>github.com/Sneezyan123/ai_project_telegram_analyzer</span><span><span class="speaker">Іван</span> · 3 / 8</span></div>
+</section>
+
+<!-- 4. LANGUAGE + TRANSLATION -->
+<section class="slide">
+  <h1><span class="kicker">Технічна частина</span>Головне обмеження: модель частково ділить пости за мовою</h1>
+
+  <div class="row">
+    <div class="col">
+      <h3>Скільки різниці дає мова</h3>
+      <table>
+        <tr><th>Порівняння</th><th class="r">JSD</th><th class="r">випадк.</th></tr>
+        <tr><td>Кремль vs Україна, усі пости</td><td class="r">0.578</td><td class="r">0.058</td></tr>
+        <tr><td>Кремль vs Україна, лише рос. пости</td><td class="r">0.296</td><td class="r">0.057</td></tr>
+        <tr><td>Україна: укр. канали vs рос. канали</td><td class="r">0.308</td><td class="r">0.058</td></tr>
+      </table>
+      <div class="callout warn small" style="margin-top:12px">
+        ≈ <b>половина</b> відстані Кремль–Україна — це мова. Приклад: ковід — окрема рос. тема (№0) і окрема укр. (№29), зміст той самий.
+      </div>
+      <p class="small" style="margin-top:10px">Але навіть усередині однієї мови Україна далі від Кремля (0.30), ніж опозиція від Кремля (0.26) → різниця змісту реальна.</p>
+    </div>
+
+    <div class="col">
+      <h3>Експеримент: перекладати все англійською?</h3>
+      <p class="tiny muted">12 тис. рос. постів, однакові UMAP/HDBSCAN, переклад opus-mt-ru-en</p>
+      <table>
+        <tr><th>Конфігурація</th><th class="r">тем</th><th class="r">c_v</th><th class="r">NPMI</th><th class="r">ARI seed</th></tr>
+        <tr class="hl"><td>A: me5, оригінал</td><td class="r">59</td><td class="r">0.468</td><td class="r">−0.105</td><td class="r">0.34</td></tr>
+        <tr><td>B: mpnet, переклад</td><td class="r">62</td><td class="r">0.423</td><td class="r">−0.104</td><td class="r">0.55</td></tr>
+        <tr><td>C: me5, переклад</td><td class="r">39</td><td class="r">0.440</td><td class="r">−0.174</td><td class="r">0.19</td></tr>
+      </table>
+      <p class="small" style="margin-top:10px"><b>Лишаємося на оригіналі:</b></p>
+      <ul class="small">
+        <li>виграшу в якості немає, A і B розбивають корпус зовсім по-різному (ARI 0.10);</li>
+        <li>на весь корпус — 12+ год GPU;</li>
+        <li>переклад ламає сленг: «укропам» → <i>dungeons</i>, «ВСУ» → <i>U.S.U.A.</i></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer"><span>github.com/Sneezyan123/ai_project_telegram_analyzer</span><span><span class="speaker">Іван</span> · 4 / 8</span></div>
+</section>
+
+<!-- 5. Q1 + Q3 -->
+<section class="slide">
+  <h1><span class="kicker">Попередні результати · Q1 і Q3</span>Усі чотири середовища значуще різні</h1>
+
+  <div class="row">
+    <div class="col" style="flex:0 0 470px">
+      <svg viewBox="0 0 470 384" width="470" height="384" font-family="Inter, sans-serif">
+        <!-- labels -->
+        <g font-size="14" fill="#17202a" font-weight="600">
+          <text x="100" y="80" text-anchor="end">Кремль</text>
+          <text x="100" y="164" text-anchor="end">Білорусь</text>
+          <text x="100" y="248" text-anchor="end">Опозиція</text>
+          <text x="100" y="332" text-anchor="end">Україна</text>
+          <text x="152" y="32" text-anchor="middle">Кремль</text>
+          <text x="236" y="32" text-anchor="middle">Білорусь</text>
+          <text x="320" y="32" text-anchor="middle">Опозиція</text>
+          <text x="404" y="32" text-anchor="middle">Україна</text>
+        </g>
+        <!-- cells: x0=110, y0=42, size 84 -->
+        <!-- row Кремль -->
+        <rect x="110" y="42" width="82" height="82" rx="6" fill="#f1f4f8"/><text x="151" y="88" text-anchor="middle" font-size="15" fill="#5d6875">0.07</text>
+        <rect x="194" y="42" width="82" height="82" rx="6" fill="#8fb3dc"/><text x="235" y="88" text-anchor="middle" font-size="17" font-weight="700" fill="#17202a">0.41</text>
+        <rect x="278" y="42" width="82" height="82" rx="6" fill="#c3d6ec"/><text x="319" y="88" text-anchor="middle" font-size="17" font-weight="700" fill="#17202a">0.26</text>
+        <rect x="362" y="42" width="82" height="82" rx="6" fill="#3f78b8"/><text x="403" y="88" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">0.58</text>
+        <!-- row Білорусь -->
+        <rect x="110" y="126" width="82" height="82" rx="6" fill="#8fb3dc"/><text x="151" y="172" text-anchor="middle" font-size="17" font-weight="700" fill="#17202a">0.41</text>
+        <rect x="194" y="126" width="82" height="82" rx="6" fill="#f1f4f8"/><text x="235" y="172" text-anchor="middle" font-size="15" fill="#5d6875">0.12</text>
+        <rect x="278" y="126" width="82" height="82" rx="6" fill="#86acd8"/><text x="319" y="172" text-anchor="middle" font-size="17" font-weight="700" fill="#17202a">0.43</text>
+        <rect x="362" y="126" width="82" height="82" rx="6" fill="#1f5fa8"/><text x="403" y="172" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">0.64</text>
+        <!-- row Опозиція -->
+        <rect x="110" y="210" width="82" height="82" rx="6" fill="#c3d6ec"/><text x="151" y="256" text-anchor="middle" font-size="17" font-weight="700" fill="#17202a">0.26</text>
+        <rect x="194" y="210" width="82" height="82" rx="6" fill="#86acd8"/><text x="235" y="256" text-anchor="middle" font-size="17" font-weight="700" fill="#17202a">0.43</text>
+        <rect x="278" y="210" width="82" height="82" rx="6" fill="#f1f4f8"/><text x="319" y="256" text-anchor="middle" font-size="15" fill="#5d6875">0.10</text>
+        <rect x="362" y="210" width="82" height="82" rx="6" fill="#2a68ae"/><text x="403" y="256" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">0.62</text>
+        <!-- row Україна -->
+        <rect x="110" y="294" width="82" height="82" rx="6" fill="#3f78b8"/><text x="151" y="340" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">0.58</text>
+        <rect x="194" y="294" width="82" height="82" rx="6" fill="#1f5fa8"/><text x="235" y="340" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">0.64</text>
+        <rect x="278" y="294" width="82" height="82" rx="6" fill="#2a68ae"/><text x="319" y="340" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">0.62</text>
+        <rect x="362" y="294" width="82" height="82" rx="6" fill="#f1f4f8"/><text x="403" y="340" text-anchor="middle" font-size="15" fill="#5d6875">0.05</text>
+              </svg>
+      <p class="tiny muted" style="margin-top:2px">JSD між розподілами тем (0–1). Діагональ — дві випадкові половини однієї групи.<br>Усі пари: p ≈ 0.001 (перестановочний тест по каналах, 1 000 разів)</p>
+    </div>
+
+    <div class="col">
+      <h3>Q1 · Кремль vs російська опозиція — JSD 0.26</h3>
+      <p class="small">У 2.5–3.5 раза більше, ніж усередині груп. На першій версії пайплайну співвідношення те саме → висновок стійкий.</p>
+      <div class="grid2" style="margin:6px 0 12px">
+        <div class="card small"><b style="color:var(--kr)">Кремль</b><br>губернатори й регіони (×9–19), Кадиров позитивно (×34), добровольці й збори на армію (×14), Крим, мігранти</div>
+        <div class="card small"><b style="color:var(--op)">Опозиція</b><br>політв'язні й суди (9.5% vs 0.5%), тортури у ФСВП, «іноагенти» й незалежні медіа, Кадиров критично</div>
+      </div>
+      <h3>Q3 · Білорусь — не копія Кремля</h3>
+      <p class="small">До Кремля 0.41 — <b>далі</b>, ніж Кремль від опозиції. Повістка вузька: армія (18%) і Лукашенко + інтеграція з РФ (16%). Після 24.02 зблизилися: 0.48 → 0.36.</p>
+      <div class="callout small" style="margin-top:8px"><b>Для наступного етапу:</b> «прильоти по українських містах» пишуть і Кремль (42%), і Україна (40%) — події ті самі, оцінка протилежна. Тут потрібен аналіз тверджень і стенсу.</div>
+    </div>
+  </div>
+
+  <div class="footer"><span>github.com/Sneezyan123/ai_project_telegram_analyzer</span><span><span class="speaker">Роман</span> · 5 / 8</span></div>
+</section>
+
+<!-- 6. Q2 -->
+<section class="slide">
+  <h1><span class="kicker">Попередні результати · Q2</span>Після 24.02.2022 найсильніше змінилася Україна</h1>
+
+  <div class="row">
+    <div class="col" style="flex:0 0 560px">
+      <svg viewBox="0 0 560 330" width="560" height="330" font-family="Inter, sans-serif">
+        <!-- axis: x from 120 to 520 maps 0..0.30 -->
+        <g stroke="#e3e7ec">
+          <line x1="120" y1="20" x2="120" y2="290"/><line x1="253" y1="20" x2="253" y2="290"/><line x1="387" y1="20" x2="387" y2="290"/><line x1="520" y1="20" x2="520" y2="290"/>
+        </g>
+        <g font-size="12" fill="#5d6875" text-anchor="middle"><text x="120" y="308">0</text><text x="253" y="308">0.10</text><text x="387" y="308">0.20</text><text x="520" y="308">0.30</text></g>
+        <!-- scale: 1333.3 px per unit -->
+        <g font-size="14.5" font-weight="600" fill="#17202a" text-anchor="end">
+          <text x="110" y="52">Україна</text><text x="110" y="122">Кремль</text><text x="110" y="192">Опозиція</text><text x="110" y="262">Білорусь</text>
+        </g>
+        <!-- Україна .266 / .041 -->
+        <rect x="120" y="32" width="355" height="20" rx="3" fill="#d39b00"/><text x="481" y="47" font-size="13.5" font-weight="700">0.266  ×6.5</text>
+        <rect x="120" y="55" width="55" height="12" rx="3" fill="#c9cfd6"/><text x="181" y="65" font-size="12" fill="#5d6875">0.041</text>
+        <!-- Кремль .211 / .072 -->
+        <rect x="120" y="102" width="281" height="20" rx="3" fill="#c0392b"/><text x="407" y="117" font-size="13.5" font-weight="700">0.211  ×3</text>
+        <rect x="120" y="125" width="96" height="12" rx="3" fill="#c9cfd6"/><text x="222" y="135" font-size="12" fill="#5d6875">0.072</text>
+        <!-- Опозиція .192 / .080 -->
+        <rect x="120" y="172" width="256" height="20" rx="3" fill="#7b4fa0"/><text x="382" y="187" font-size="13.5" font-weight="700">0.192  ×2.4</text>
+        <rect x="120" y="195" width="107" height="12" rx="3" fill="#c9cfd6"/><text x="233" y="205" font-size="12" fill="#5d6875">0.080</text>
+        <!-- Білорусь .174 / .106 -->
+        <rect x="120" y="242" width="232" height="20" rx="3" fill="#2e8b57"/><text x="358" y="257" font-size="13.5" font-weight="700">0.174  ×1.6</text>
+        <rect x="120" y="265" width="141" height="12" rx="3" fill="#c9cfd6"/><text x="267" y="275" font-size="12" fill="#5d6875">0.106</text>
+      </svg>
+      <p class="tiny muted" style="margin-top:0">Кольоровий бар — JSD «рік до vs рік після»; сірий — звичайний дрейф (два півріччя до вторгнення). Лише канали, активні в обох періодах.</p>
+    </div>
+
+    <div class="col">
+      <h3>Що з'явилось або виросло</h3>
+      <ul class="small">
+        <li><b>Україна:</b> обстріли 0.5% → 5.9%, фронт 0.1% → 4.3%, збори на ЗСУ 0.4% → 3.5%</li>
+        <li><b>Кремль:</b> фронтові зведення 0.2% → 3.9%, збори на армію 1.6% → 4.2%, обстріли Бєлгорода</li>
+        <li><b>Опозиція:</b> політв'язні 8.4% → 11.5%, мобілізація, «Вагнер»</li>
+        <li><b>Білорусь:</b> майже без змін — армія і Лукашенко</li>
+      </ul>
+      <h3 style="margin-top:12px">Що просіло</h3>
+      <ul class="small">
+        <li><b>Ковід</b> — найбільша зміна в корпусі: у Кремля 14.7% → 2.1%</li>
+        <li>вибори в Думу, Афганістан, Казахстан, Карабах</li>
+      </ul>
+      <div class="callout warn small" style="margin-top:12px">Частину тем «вбив» звичайний новинний цикл, а не вторгнення → «рік до vs рік після» перебільшує ефект. Далі: вікна по кілька тижнів і сплески Клейнберга.</div>
+    </div>
+  </div>
+
+  <div class="footer"><span>github.com/Sneezyan123/ai_project_telegram_analyzer</span><span><span class="speaker">Роман</span> · 6 / 8</span></div>
+</section>
+
+<!-- 7. PROGRESS -->
+<section class="slide">
+  <h1><span class="kicker">Прогрес</span>Що обіцяли, що зробили, що не вийшло</h1>
+
+  <div class="row">
+    <div class="col" style="flex:1.15">
+      <table>
+        <tr><th>План до мідтерму (з пропоузалу)</th><th>Стан</th></tr>
+        <tr><td>Потокова рівномірна вибірка</td><td><span class="tag ok">зроблено</span> <span class="small muted">423 тис. постів, 2 датасети</span></td></tr>
+        <tr><td>EDA, language ID, перевірка мовного поділу</td><td><span class="tag ok">зроблено</span></td></tr>
+        <tr><td>LDA baseline</td><td><span class="tag ok">зроблено</span> <span class="small muted">K = 20/40/60/80</span></td></tr>
+        <tr><td>Перша модель BERTopic</td><td><span class="tag ok">зроблено</span> <span class="small muted">4 рівні гранулярності</span></td></tr>
+        <tr><td>Експеримент із перекладом</td><td><span class="tag ok">зроблено</span> <span class="small muted">12 тис. постів</span></td></tr>
+        <tr><td>Метрики якості й стабільності</td><td><span class="tag ok">зроблено</span> <span class="small muted">NPMI, c_v, diversity, ARI</span></td></tr>
+        <tr><td>Попередні відповіді Q1, Q2</td><td><span class="tag part">з оговорками</span></td></tr>
+        <tr><td>Q3, власна лематизація, звірка міток, перестановочний тест</td><td><span class="tag plus">понад план</span></td></tr>
+        <tr><td>Людська оцінка тем, назви тем</td><td><span class="tag no">ще немає</span></td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <h3>Що не вийшло і чому</h3>
+      <ul class="small">
+        <li><b>Мовний поділ не прибрано</b> — з ростом укр. даних BERTopic почав будувати окремі україномовні теми.</li>
+        <li><b>59% постів у шумі</b> HDBSCAN; перекосу між групами немає (55–62%).</li>
+        <li><b>Час пішов на баги:</b> BERTopic за замовчуванням вирізав кирилицю; перенумерація тем приклеїла слова до чужих тем; стоп-лист вирізав «Россия» і «война».</li>
+        <li><b>Частина тем — формат</b>, а не зміст: плашка «иноагента», анонси ефірів.</li>
+      </ul>
+      <h3 style="margin-top:14px">Хто що робив</h3>
+      <div class="small">
+        <p><b>Артем</b> — вибірка, препроцесинг, EDA, language ID, LDA</p>
+        <p><b>Іван</b> — ембединги, BERTopic, гранулярність, переклад, когерентність і стабільність</p>
+        <p><b>Роман</b> — аналіз груп і зсуву після 24.02, читання постів і назви тем, огляд джерел, план</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span>github.com/Sneezyan123/ai_project_telegram_analyzer</span><span><span class="speaker">Артем</span> · 7 / 8</span></div>
+</section>
+
+<!-- 8. PLAN -->
+<section class="slide">
+  <h1><span class="kicker">Подальший план</span>До фіналу: від тем до тверджень і стенсу</h1>
+
+  <div class="row">
+    <div class="col" style="flex:1.25">
+      <h3>Обов'язкове — що і як</h3>
+      <table class="small">
+        <tr><th>Задача</th><th>Дизайн експерименту</th><th>Мірило</th></tr>
+        <tr><td><b>1. Мова</b></td><td class="small">LaBSE vs центрування ембедингів по мовах vs теми окремо по мовах</td><td class="small">JSD-перевірки зі слайду 4</td></tr>
+        <tr><td><b>2. Чистка формату</b></td><td class="small">регулярки для плашок і анонсів, «службові» теми</td><td class="small">чи тримаються висновки</td></tr>
+        <tr><td><b>3. Людська оцінка</b></td><td class="small">word / topic intrusion, 40 тем, 3 анотатори</td><td class="small">точність, узгодженість</td></tr>
+        <tr><td><b>4. Твердження + стенс</b></td><td class="small">LLM на ~20 постах кластера: актор, дія, об'єкт, оцінка; золотий набір 150 кластерів</td><td class="small">точність по полях, F1 стенсу</td></tr>
+        <tr><td><b>5. Динаміка</b></td><td class="small">тижневі ряди, сплески Клейнберга, подієві vs фонові теми</td><td class="small">збіг сплесків з відомими подіями</td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <h3>План Б</h3>
+      <ul class="small">
+        <li>Розмітка затягується → золотий набір 80 кластерів, оцінка на 25 темах</li>
+        <li>LLM не тримає схему → спрощуємо до «актор, оцінка»</li>
+        <li>Мову не прибрали → порівнюємо Україну лише всередині однієї мови і чесно пишемо обмеження</li>
+        <li>Шум 59% → reduce_outliers і перевірка, чи змінюються частки</li>
+      </ul>
+      <h3 style="margin-top:14px">Якщо все вийде</h3>
+      <ul class="small">
+        <li>Поширення тем між каналами по графу форвардів Zenodo (1.9 млн зв'язків)</li>
+        <li>Розділити опозицію на російську й білоруську</li>
+        <li>Перенос на білоруський корпус 2025 і звірка з Top2Vec</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer"><span>github.com/Sneezyan123/ai_project_telegram_analyzer</span><span><span class="speaker">Роман</span> · 8 / 8</span></div>
+</section>
+
+</body>
+</html>
